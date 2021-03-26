@@ -1,13 +1,26 @@
-# components of a computer,
-# What is a computer to us?
+# add_to_pc?
 
+# LDI 
+# 1
+# 1 
+# PRN <--- pc
+# 2
+LDI = 0b10000010
+HLT = 0b00000001
+pc = 0
+mem = [
+    LDI,
+    2,
+    3,
+    HLT
+]
+# opperand_size = LDI >> 6
+# add_to_pc = opperand_size + 1
 
+# DECODE
+inst = mem[pc]
+add_to_pc = (inst >> 6) + 1
+# print(opperand_size)
 
-
-# what is a cpu to us?
-# what are registers to us?
-
-# what is ram / memory to us?
-
-
-
+pc += add_to_pc
+print(mem[pc])
