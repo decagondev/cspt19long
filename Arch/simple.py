@@ -21,11 +21,17 @@ import sys
 PRINT_TOM = 0b01011010 # print tom to the console
 PRINT_NUM = 0b10010000 # print a number stored in ram 1 byte ahead of the instruction
 HALT      = 0b10110111 # halt the operation of our data driven machine
-STORE      = 0b00010001 # store a number from the ram 2 byte ahead of the instruction in to a register denote from 1 byte ahead of the instruction in ram
+STORE      = 0b10000010 # store a number from the ram 2 byte ahead of the instruction in to a register denote from 1 byte ahead of the instruction in ram
 PRINT_REG  = 0b01111101 # print a number at the index in to registers, provided by the number from current instruction + 1 in ram
 ADD        = 0b01101101 # adds the num stored at the register at the index from ram 1 byte away from the instruction
+PUSH = 0b01000101 # push the value at given reg to the ramn address pointed to by R7 (SP)
+POP = 0b01000110 # pop the value in to given reg from ram pointed to by the sp
+CALL = 0b01010000 
+RET = 0b00010001
 
 ram = [0] * 256
+
+SP = 7
 
 def load_mem(filename):
     try:
@@ -84,14 +90,19 @@ if len(sys.argv) != 2:
 load_mem(sys.argv[1])
 # a program counter to keep track of what we are executing.
 pc = 0
+sp = 7
 
 # registers
 registers = [0] * 8 # r0 - r7
+registers[sp] = 0xf4
+
 
 # a loop for the cpu execute cycle.
 while True:
     # FETCH
     inst = ram[pc]
+    opa = ram[pc + 1]
+    opb = ram[pc + 2]
 
     # DECODE
     if inst == HALT:
@@ -134,6 +145,43 @@ while True:
         registers[reg_index_a] += registers[reg_index_b]
         # DECODE
         pc += 3
+
+    elif inst == CALL:
+        # EXECUTE
+        reg_index_a = ram[pc + 1]
+        
+
+        # push the PC + 2 literal number on to the stack
+        registers[sp] -= 1
+        ram[registers[sp]] = pc + 2
+        
+        # move the pc to point to addr stored at given reg
+        pc = registers[reg_index_a]
+        # DECODE
+
+    elif inst == RET:
+        # pop the top of the stack on to pc
+        pc = ram[registers[sp]]
+        registers[sp] += 1
+
+    
+    elif inst == PUSH:
+        # execute
+
+        # decrement SP (R7)
+        registers[sp] -= 1
+
+        # put the val from ram in to reg
+        ram[registers[sp]] = registers[opa]
+
+    elif inst == POP:
+        # execute
+        # put the val from the ram pointed to by sp in to reg given in opa
+        registers[opa] = ram[registers[sp]]
+
+        # increment SP (R7)
+        registers[sp] += 1
+
         
     else:
         print("I have no idea what you want me to do!?!?!")
